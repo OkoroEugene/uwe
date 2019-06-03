@@ -1,0 +1,40 @@
+{
+  "name": "Uwe",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "android": "cd android && gradlew app:assembleDebug && gradlew installDebug",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@react-native-community/async-storage": "^1.4.0",
+    "axios": "^0.18.0",
+    "native-base": "^2.12.1",
+    "react": "16.8.3",
+    "react-native": "0.59.8",
+    "react-native-fbsdk": "^0.8.0",
+    "react-native-kin-sdk": "github:grantfayvor/react-native-kin-sdk",
+    "react-native-linear-gradient": "^2.5.4",
+    "react-native-navigation": "^2.18.5",
+    "react-native-vector-icons": "^6.4.2",
+    "react-native-view-shot": "^2.6.0",
+    "rn-placeholder": "^2.0.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.4",
+    "@babel/runtime": "^7.4.4",
+    "babel-jest": "^24.8.0",
+    "jest": "^24.8.0",
+    "metro-react-native-babel-preset": "^0.54.0",
+    "react-test-renderer": "16.8.3"
+  },
+  "jest": {
+    "preset": "react-native"
+  },
+  "rnpm": {
+    "assets": [
+      "./assets/fonts"
+    ]
+  }
+}

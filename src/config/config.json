@@ -1,0 +1,6 @@
+{
+    "apiKey": "GCCE7SXBI44OO5ZYIDZHHEHOXPIBPWATB4IWBJ7766KEMAZV5J7475TU",
+    "appId": "vNiX",
+    "useJWT": true,
+    "jwtServiceUrl": "https://api-development.swell.wtf:8000/development/v1/kin/jwt-sign"
+  }
