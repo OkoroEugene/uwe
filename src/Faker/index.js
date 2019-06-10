@@ -36,7 +36,7 @@ const Data = {
     ],
     "cuffs": [
         require('../imgs/blackCuffs.png'),
-        require('../imgs/bdbb.png'),
+        // require('../imgs/bdbb.png'),
         require('../imgs/drhh.png'),
         require('../imgs/grn.png'),
         require('../imgs/igboCuff.png'),

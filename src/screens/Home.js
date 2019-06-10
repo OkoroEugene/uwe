@@ -205,11 +205,12 @@ class Home extends React.Component {
         this.setState({ loading: false, loadingText: null })
     }
 
-    transferKin = (publicAddress) => {
+    transferKin = (accountNumber, publicAddress) => {
         if (publicAddress) {
-            KinNative.buildTransaction(JSON.stringify(kinConfig), parseInt(0), publicAddress, parseFloat(30), (error, result) => {
+            KinNative.buildTransaction(JSON.stringify(kinConfig), parseInt(0), publicAddress, parseFloat(100), (error, result) => {
                 console.log(error);
                 console.log(result);
+                this.hideLoader();
                 Navigation.push(this.props.componentId, {
                     component: {
                         name: 'uwe.KinMarketPlace',
@@ -259,7 +260,7 @@ class Home extends React.Component {
                     alert('Share cancelled');
                 } else {
                     alert('Share success with postId: ' + postId + '. You have earned 100KIN coin.');
-                    this.transferKin(this.state.userCredentials.publicAddress);
+                    this.transferKin(this.state.userCredentials.accountNumber, this.state.userCredentials.publicAddress);
                     this.showLoader("Initializing transaction...")
                 }
             } catch (error) {
@@ -267,16 +268,6 @@ class Home extends React.Component {
             }
         } else {
             alert("Please install an up-to-date version of facebook")
-        }
-
-        transferKin = (accountNumber, publicAddress) => {
-            // buildTransaction(String config, int accountNumber, String recipientAddress, BigDecimal amount, int fee, final Callback cb) {
-            if (accountNumber && publicAddress) {
-                KinNative.buildTransaction(JSON.stringify(kinConfig), parseInt(accountNumber), publicAddress, parseFloat(1000), (error, result) => {
-                    console.log(error);
-                    console.log(result);
-                });
-            }
         }
     }
     fetchUserData() {

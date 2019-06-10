@@ -30,7 +30,7 @@ public class KinNativeModule extends ReactContextBaseJavaModule {
 
     private KinClient kinClient;
     private Gson gson = new Gson();
-    private static final String URL_CREATE_ACCOUNT = "https://friendbot-testnet.kininfrastructure.com?addr=%s&amount=" + String.valueOf(5000);
+    private static final String URL_CREATE_ACCOUNT = "https://friendbot-testnet.kininfrastructure.com?addr=%s&amount=" + String.valueOf(10);
 
     public KinNativeModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -64,6 +64,11 @@ public class KinNativeModule extends ReactContextBaseJavaModule {
         Environment env = getEnvironment(environment);
         kinClient = new KinClient(getReactApplicationContext(), env, appId);
         return kinClient;
+    }
+
+     @ReactMethod
+    public void showToast(String text) {
+        Toast.makeText(getReactApplicationContext(), text, Toast.LENGTH_SHORT).show();
     }
 
     @ReactMethod

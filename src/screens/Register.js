@@ -12,10 +12,10 @@ import config from '../config';
 
 const KinNative = NativeModules.KinNativeModule;
 const kinConfig = {
-    appId: "test",
-    environment: "DEVELOPMENT"
-    // appId: "vNiX",
-    // environment: "PRODUCTION"
+    // appId: "test",
+    // environment: "DEVELOPMENT"
+    appId: "vNiX",
+    environment: "PRODUCTION"
   };
 class Register extends Component {
 

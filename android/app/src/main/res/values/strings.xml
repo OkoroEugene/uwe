@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Uwe</string>
-    <string name="facebook_app_id">272626993099402</string>
+    <!-- 272626993099402 -->
+    <string name="facebook_app_id">2373163659675708</string>
 </resources>

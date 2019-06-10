@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 import LinearGradient from 'react-native-linear-gradient';
 import { Navigation } from 'react-native-navigation';
 import Placeholder, { Line, Media } from "rn-placeholder";
+import { goToAuth } from '../Navigation';
 const KinNative = NativeModules.KinNativeModule;
 
 const styles = StyleSheet.create({
@@ -46,6 +47,11 @@ export default class Drawer extends Component {
 
     componentDidMount() {
         this.fetchUserData();
+        // if (this.state.userCredentials) {
+        //     setInterval(() => {
+        //         this.getKinAccountBalance(this.state.userCredentials.accountNumber);
+        //     }, 1000);   
+        // }
         // this.defaultPubAddress();
     }
 
@@ -88,13 +94,14 @@ export default class Drawer extends Component {
                 console.log(err);
             }
         })
-        Navigation.setRoot({
-            root: {
-                component: {
-                    name: "uwe.Login"
-                }
-            }
-        });
+        // Navigation.setRoot({
+        //     root: {
+        //         component: {
+        //             name: "uwe.Login"
+        //         }
+        //     }
+        // });
+        goToAuth();
     }
 
     showLoader(loadingText) {
@@ -126,14 +133,14 @@ export default class Drawer extends Component {
                         locations={[0, 0.5, 0.6]}
                         colors={['#B43D3B', '#ED483A', '#B43D3B']}
                         style={[{
-                            height: 330,
+                            height: 300,
                             width: "100%",
                             alignItems: "center",
                             justifyContent: "center"
                         }, this.state.isProcessing ? { opacity: 0.5 } : { opacity: 1 }]}>
                         <View style={!this.state.balance ? { marginTop: 50, padding: 10 } : null}>
                             <Placeholder
-                                isReady={this.state.balance ? true : false}
+                                isReady={this.state.userCredentials && this.state.userCredentials.publicAddress ? true : false}
                                 animation="fade"
                                 whenReadyRender={() => <View style={{ alignItems: "center" }}>
                                     <View>
@@ -151,8 +158,8 @@ export default class Drawer extends Component {
                                         <View style={{ padding: 20 }}>
                                             <Text style={{ fontFamily: "Kastelov - Axiforma Heavy", color: "white", textAlign: "center" }}>{this.state.userCredentials.publicAddress}</Text>
                                         </View>
-                                        <Text style={{ fontSize: 18, color: "#bbb" }}>Balance</Text>
-                                        <Text style={{ fontFamily: "Kastelov - Axiforma Heavy", color: "white" }}>{balance}</Text>
+                                        {/* <Text style={{ fontSize: 18, color: "#bbb" }}>Balance</Text>
+                                        <Text style={{ fontFamily: "Kastelov - Axiforma Heavy", color: "white" }}>{balance}</Text> */}
                                     </View>
                                 </View>}
                             >

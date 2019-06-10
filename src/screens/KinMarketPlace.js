@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, TouchableOpacity, ScrollView, NativeModules } from "react-native";
+import { View, TouchableOpacity, ScrollView, NativeModules, Clipboard } from "react-native";
 import { Form, Item, Input, Label, Toast, Icon, Thumbnail, Spinner, Card, CardItem, Content } from 'native-base';
 import styles from '../styles';
 import Text from '../AppText';
@@ -24,7 +24,8 @@ class KinMarketPlace extends Component {
         userCredentials: {},
         balance: undefined,
         loading: false,
-        loadingText: undefined
+        loadingText: undefined,
+        isProcessing: false
     };
 
     showLoader(loadingText) {
@@ -42,15 +43,33 @@ class KinMarketPlace extends Component {
         }
     }
 
+    copyToClipboard() {
+        Clipboard.setString(this.props.credentials.publicAddress);
+        KinNative.showToast("Copied to clipboard");
+    }
+
     transferKin = (accountNumber, amount) => {
+        // this.showLoader("Please wait...");
+        this.setState({ isProcessing: true });
         if (accountNumber && amount) {
             KinNative.buildTransaction(JSON.stringify(kinConfig), parseInt(0), this.publicAddress, parseFloat(amount), (error, result) => {
                 console.log(error);
                 console.log(result);
+                if (error) {
+                    // this.hideLoader();
+                    this.setState({ isProcessing: false });
+                    alert(error.cause.detailMessage)
+                }
                 if (result) {
+                    // this.hideLoader();
+                    this.setState({ isProcessing: false });
                     this.getKinAccountBalance(accountNumber);
                     alert("Successfully funded!");
                 }
+
+                // let a = {
+                //     "cause": { "detailMessage": "length\u003d0; index\u003d0", "stackTrace": [], "suppressedExceptions": [] }, "detailMessage": "Invalid addressee public address format", "stackTrace": [], "suppressedExceptions": []
+                // }
             });
         }
     }
@@ -87,23 +106,28 @@ class KinMarketPlace extends Component {
                             </View>
                             <View style={{ alignItems: "center" }}>
                                 <View>
-                                    <Text style={{ color: "#bbb", fontSize: 30 }}>Public Address</Text>
+                                    <Text style={{ color: "#bbb", fontSize: 20 }}>Public Address</Text>
                                 </View>
-                                <View>
-                                    <Text style={{ textAlign: "center", fontSize: 17, color: "white" }}>{this.props.credentials.publicAddress}</Text>
+                                <View style={{ alignItems: "center" }}>
+                                    <Text style={{ textAlign: "center", fontSize: 15, color: "white" }}>{this.props.credentials.publicAddress}</Text>
+                                    <TouchableOpacity onPress={() => this.copyToClipboard()}>
+                                        <Icon type="Ionicons" name="copy" style={{ color: "#ccc" }} />
+                                    </TouchableOpacity>
                                 </View>
-                                <View>
-                                    <Text style={{ color: "#bbb", fontSize: 30 }}>Balance</Text>
-                                </View>
-                                <View>
-                                    <Text style={{ textAlign: "center", fontSize: 17, color: "white" }}>{this.state.balance}</Text>
+                                <View style={{ marginTop: 20 }}>
+                                    <View>
+                                        <Text style={{ color: "#bbb", fontSize: 20 }}>Balance</Text>
+                                    </View>
+                                    <View>
+                                        <Text style={{ textAlign: "center", fontSize: 15, color: "white" }}>{this.state.balance} KIN</Text>
+                                    </View>
                                 </View>
                             </View>
                             <Card style={{ padding: 10, marginTop: 100, borderRadius: 10 }}>
                                 <View style={{ alignItems: "center" }}>
                                     <Text style={{ color: "#bbb", fontSize: 17 }}>Transfer KIN</Text>
                                 </View>
-                                <Form>
+                                <Form style={{ marginTop: 20 }}>
                                     <Item inlineLabel>
                                         <Input placeholder="Amount to transfer" style={styles.inputFormStyle} onChangeText={e => this.amount = e} />
                                     </Item>
@@ -131,7 +155,15 @@ class KinMarketPlace extends Component {
                                                 alignItems: "center",
                                                 borderRadius: 3,
                                                 justifyContent: "center"
-                                            }]}><Text style={styles.textWhite}>Transfer</Text>
+                                            }]}>
+                                            <View style={{ flexDirection: "row" }}>
+                                                <View style={{ justifyContent: "center" }}>
+                                                    <Text style={styles.textWhite}>Transfer</Text>
+                                                </View>
+                                                {
+                                                    this.state.isProcessing ? <Spinner size="large" color="#bbb" style={{ position: "relative", left: 20 }} /> : null
+                                                }
+                                            </View>
                                         </LinearGradient>
                                     </TouchableOpacity>
                                 </View>
@@ -152,8 +184,8 @@ class KinMarketPlace extends Component {
                         <Line />
                         <Line />
                         <Line width="30%" />
+                        {/* {loading && <Loader loading={loading} text={loadingText} />} */}
                     </Placeholder>
-                    {loading && <Loader loading={loading} text={loadingText} />}
                 </LinearGradient >
             </ScrollView >
         );
