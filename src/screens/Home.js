@@ -6,7 +6,8 @@ import {
     Image,
     StyleSheet,
     TouchableHighlight,
-    NativeModules
+    NativeModules,
+    Dimensions
 } from 'react-native';
 import {
     Thumbnail,
@@ -27,6 +28,7 @@ import { Navigation } from 'react-native-navigation';
 import Axios from 'axios';
 import AsyncStorage from '@react-native-community/async-storage';
 import config from '../config';
+import LinearGradient from 'react-native-linear-gradient';
 const KinNative = NativeModules.KinNativeModule;
 
 const kinConfig = {
@@ -61,7 +63,8 @@ class Home extends React.Component {
             loading: false,
             loadingText: undefined,
             isDrawerVisible: false,
-            userCredentials: {}
+            userCredentials: {},
+            changeCount: 0
         }
     }
     componentDidMount() {
@@ -102,98 +105,125 @@ class Home extends React.Component {
     }
     options() {
         return (
-            <View style={{ flexDirection: "row" }}>
-                <TouchableOpacity
-                    onPress={() => this.handleSort("collar")}
-                    style={{
-                        padding: 10,
-                        margin: 10,
-                        backgroundColor: "#CCC",
-                        width: 60,
-                        height: 60,
-                        borderRadius: 60 / 2,
-                        justifyContent: "center",
-                        alignItems: "center"
-                    }}>
-                    <Text style={{ fontSize: 10 }}>Collars</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={() => this.handleSort("body")}
-                    style={{
-                        padding: 10,
-                        margin: 10,
-                        backgroundColor: "#CCC",
-                        width: 60,
-                        height: 60,
-                        borderRadius: 60 / 2,
-                        justifyContent: "center",
-                        alignItems: "center"
-                    }}>
-                    <Text style={{ fontSize: 10 }}>Body</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={() => this.handleSort("sleeves")}
-                    style={{
-                        padding: 10,
-                        margin: 10,
-                        backgroundColor: "#CCC",
-                        width: 60,
-                        height: 60,
-                        borderRadius: 60 / 2,
-                        justifyContent: "center",
-                        alignItems: "center"
-                    }}>
-                    <Text style={{ fontSize: 10 }}>Sleeves</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    onPress={() => this.handleSort("cuffs")}
-                    style={{
-                        padding: 10,
-                        margin: 10,
-                        backgroundColor: "#CCC",
-                        width: 60,
-                        height: 60,
-                        borderRadius: 60 / 2,
-                        justifyContent: "center",
-                        alignItems: "center"
-                    }}>
-                    <Text style={{ fontSize: 10 }}>Cuffs</Text>
-                </TouchableOpacity>
+            <View style={{ alignItems: "center" }}>
+                <View style={{ flexDirection: "row" }}>
+                    <TouchableOpacity
+                        onPress={() => this.handleSort("collar")}
+                        style={{
+                            padding: 10,
+                            margin: 10,
+                            backgroundColor: "#CCC",
+                            width: 60,
+                            height: 60,
+                            borderRadius: 60 / 2,
+                            justifyContent: "center",
+                            alignItems: "center"
+                        }}>
+                        <Text style={{ fontSize: 10 }}>Collars</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => this.handleSort("body")}
+                        style={{
+                            padding: 10,
+                            margin: 10,
+                            backgroundColor: "#CCC",
+                            width: 60,
+                            height: 60,
+                            borderRadius: 60 / 2,
+                            justifyContent: "center",
+                            alignItems: "center"
+                        }}>
+                        <Text style={{ fontSize: 10 }}>Body</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => this.handleSort("sleeves")}
+                        style={{
+                            padding: 10,
+                            margin: 10,
+                            backgroundColor: "#CCC",
+                            width: 60,
+                            height: 60,
+                            borderRadius: 60 / 2,
+                            justifyContent: "center",
+                            alignItems: "center"
+                        }}>
+                        <Text style={{ fontSize: 10 }}>Sleeves</Text>
+                    </TouchableOpacity>
+                    {/* <TouchableOpacity
+                        onPress={() => this.handleSort("cuffs")}
+                        style={{
+                            padding: 10,
+                            margin: 10,
+                            backgroundColor: "#CCC",
+                            width: 60,
+                            height: 60,
+                            borderRadius: 60 / 2,
+                            justifyContent: "center",
+                            alignItems: "center"
+                        }}>
+                        <Text style={{ fontSize: 10 }}>Cuffs</Text>
+                    </TouchableOpacity> */}
+                </View>
             </View>
         );
     }
     updateData(data, i) {
-        this.setState({ [this.state.meta]: data, selected: i })
+        this.transferKin(2);
+        this.setState({ [this.state.meta]: data, selected: i, changeCount: this.state.changeCount + 1 })
     }
     fabrics(data) {
         return (
-            <ScrollView contentContainerStyle={{ paddingVertical: 20 }}
-                horizontal={true}
-                showsHorizontalScrollIndicator={false}
-                showsVerticalScrollIndicator={false}>
-                {
-                    data.map((items, i) =>
-                        <TouchableOpacity
-                            key={i}
-                            style={this.state.selected === i ? {
-                                backgroundColor: "#CCC",
-                                width: 80,
-                                height: 80,
-                                borderRadius: 80 / 2,
-                                justifyContent: "center", alignItems: "center"
-                            } : null}
-                            onPress={() => this.updateData(items, i)}
-                        >
-                            <Thumbnail style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 40 / 2,
-                                margin: 10,
-                                aspectRatio: 2 / 1
-                            }} source={items} />
-                        </TouchableOpacity>)
-                }
-            </ScrollView>
+            <View>
+                <ScrollView contentContainerStyle={{ paddingVertical: 20 }}
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={false}
+                    showsVerticalScrollIndicator={false}>
+                    {
+                        data.map((items, i) =>
+                            <TouchableOpacity
+                                key={i}
+                                style={this.state.selected === i ? {
+                                    backgroundColor: "#CCC",
+                                    width: 60,
+                                    height: 60,
+                                    borderRadius: 60 / 2,
+                                    justifyContent: "center", alignItems: "center"
+                                } : null}
+                                onPress={() => this.updateData(items, i)}
+                            >
+                                <Thumbnail style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 40 / 2,
+                                    margin: 10,
+                                    aspectRatio: 2 / 1
+                                }} source={items} />
+                            </TouchableOpacity>)
+                    }
+                </ScrollView>
+                <View style={{ justifyContent: "center", position: "relative", bottom: "10%", paddingHorizontal: 58, marginTop: 30 }}>
+                    <TouchableOpacity
+                        onPress={() => this.goBack()}
+                    >
+                        <LinearGradient
+                            start={{ x: 0.0, y: 0.25 }} end={{ x: 0.5, y: 1.0 }}
+                            locations={[0, 0.5, 0.6]}
+                            colors={['#B43D3B', '#ED483A', '#B43D3B']}
+                            style={[{
+                                height: 50,
+                                width: "100%",
+                                alignItems: "center",
+                                borderRadius: 50,
+                                justifyContent: "center"
+                            }]}>
+                            <View style={{ flexDirection: "row" }}>
+                                <Icon fontSize={30} type="Ionicons" name="arrow-back" style={{ color: "white", marginRight: 10 }} />
+                                <Text style={{ color: "white", marginTop: 3 }}>Go Back</Text>
+                            </View>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                </View>
+            </View>
         );
     }
 
@@ -205,11 +235,14 @@ class Home extends React.Component {
         this.setState({ loading: false, loadingText: null })
     }
 
-    transferKin = (accountNumber, publicAddress) => {
-        if (publicAddress) {
-            KinNative.buildTransaction(JSON.stringify(kinConfig), parseInt(0), publicAddress, parseFloat(100), (error, result) => {
-                console.log(error);
-                console.log(result);
+    transferKin = async (amt = 0) => {
+        this.setState({ isProcessing: true });
+        let data = {
+            destination: this.state.userCredentials.publicAddress,
+            amount: amt == 0 ? 50 : amt
+        }
+        await Axios.post(`${config.env.prod.url}/kin/send`, data).then((response) => {
+            if (response.data && amt == 0) {
                 this.hideLoader();
                 Navigation.push(this.props.componentId, {
                     component: {
@@ -226,8 +259,13 @@ class Home extends React.Component {
                         }
                     }
                 })
-            });
-        }
+            }
+        }).catch((err) => {
+            if (err) {
+                this.setState({ isProcessing: false });
+                alert("network error!")
+            }
+        })
     }
     screenShot() {
         this.showLoader("Please wait...");
@@ -259,8 +297,8 @@ class Home extends React.Component {
                 if (isCancelled) {
                     alert('Share cancelled');
                 } else {
-                    alert('Share success with postId: ' + postId + '. You have earned 100KIN coin.');
-                    this.transferKin(this.state.userCredentials.accountNumber, this.state.userCredentials.publicAddress);
+                    alert('Congratulations!! You have earned 50KIN coin.');
+                    this.transferKin();
                     this.showLoader("Initializing transaction...")
                 }
             } catch (error) {
@@ -280,6 +318,9 @@ class Home extends React.Component {
                     console.log(response.data)
                     this.setState({ userCredentials: response.data });
                 })
+                    .catch(err => {
+                        alert(err)
+                    })
             });
     }
     facebookLogin() {
@@ -302,19 +343,28 @@ class Home extends React.Component {
     render() {
         const { loading, loadingText } = this.state;
         return (
-            <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center" }}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}>
                 {/* <Image style={{ width: "50%", height: "50%", marginTop: 1000 }} source={{ uri: this.state.screenShot }} /> */}
+                <View style={{ alignItems: "center", marginTop: 10 }}>
+                    <View style={{ width: 100, height: 24, borderRadius: 30, backgroundColor: "#ccc", justifyContent: "center" }}>
+                        <Text style={{ fontSize: 14, color: "black", textAlign: "center" }}>Counter: {this.state.changeCount}</Text>
+                    </View>
+                </View>
                 <ViewShot
                     style={{
                         flexGrow: 1,
                         justifyContent: "center",
                         alignItems: "center",
                         position: "relative",
+                        // backgroundColor: "red",
+                        height: Dimensions.get('window').height - 450,
+                        paddingTop: "80%",
                         // bottom: 80,
                         // borderWidth: 2,
                         // borderColor: "#bbb",
                         paddingHorizontal: 60
                     }} ref="viewShot" options={{ format: "jpg", quality: 0.9 }}>
+
                     {/* <ViewShot style={{ flexGrow: 1, justifyContent: "center", alignItems: "center" }} onCapture={this.onCapture} captureMode="mount"> */}
                     <View style={{ marginTop: -100 }}>
                         <Collar collar={this.state.collar} />
@@ -323,11 +373,11 @@ class Home extends React.Component {
                     </View>
                     {/* <Cuffs cuffs={this.state.cuffs} /> */}
                 </ViewShot>
-                <View style={{ position: "absolute", bottom: 130 }}>
+                <View style={{ flex: 1 }}>
                     {
                         this.state.fabrics.length > 0 ? this.fabrics(this.state.fabrics) : this.options()
                     }
-                    {
+                    {/* {
                         this.state.fabrics.length > 0 ? <View style={{ justifyContent: "center", alignItems: "center" }}>
                             <TouchableOpacity
                                 onPress={() => this.goBack()}
@@ -335,10 +385,10 @@ class Home extends React.Component {
                                 <Icon fontSize={30} type="Ionicons" name="arrow-back" />
                             </TouchableOpacity>
                         </View> : null
-                    }
+                    } */}
                 </View>
-                <View style={{ position: "absolute", bottom: 50 }}>
-                    <Button style={{ width: "100%", height: 50, justifyContent: "center" }} large icon onPress={this.screenShot.bind(this)}>
+                <View style={{ position: "absolute", bottom: 50, alignSelf: "center" }}>
+                    <Button style={{ width: "100%", height: 50, justifyContent: "center", borderRadius: 50 }} large icon onPress={this.screenShot.bind(this)}>
                         <Icon name='logo-facebook' />
                         <Text style={{ color: "white" }}>Share to earn Kin coins</Text>
                     </Button>

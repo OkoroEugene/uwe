@@ -11,14 +11,15 @@ import Loader from './Loader';
 import config from '../config';
 import Axios from 'axios';
 import Placeholder, { Line, Media } from "rn-placeholder";
+import { Navigation } from 'react-native-navigation';
 
 const KinNative = NativeModules.KinNativeModule;
-const kinConfig = {
-    appId: "test",
-    environment: "DEVELOPMENT"
-    // appId: "vNiX",
-    // environment: "PRODUCTION"
-};
+// const kinConfig = {
+//     appId: "test",
+//     environment: "DEVELOPMENT"
+//     // appId: "vNiX",
+//     // environment: "PRODUCTION"
+// };
 class KinMarketPlace extends Component {
     state = {
         userCredentials: {},
@@ -39,7 +40,9 @@ class KinMarketPlace extends Component {
     componentDidMount() {
         if (this.props.credentials) {
             this.setState({ userCredentials: this.props.credentials });
-            this.getKinAccountBalance(this.props.credentials.accountNumber);
+            this.getKinAccountBalance({
+                address: this.props.credentials.publicAddress
+            });
         }
     }
 
@@ -48,40 +51,39 @@ class KinMarketPlace extends Component {
         KinNative.showToast("Copied to clipboard");
     }
 
-    transferKin = (accountNumber, amount) => {
-        // this.showLoader("Please wait...");
+    transferKin = async () => {
         this.setState({ isProcessing: true });
-        if (accountNumber && amount) {
-            KinNative.buildTransaction(JSON.stringify(kinConfig), parseInt(0), this.publicAddress, parseFloat(amount), (error, result) => {
-                console.log(error);
-                console.log(result);
-                if (error) {
-                    // this.hideLoader();
-                    this.setState({ isProcessing: false });
-                    alert(error.cause.detailMessage)
-                }
-                if (result) {
-                    // this.hideLoader();
-                    this.setState({ isProcessing: false });
-                    this.getKinAccountBalance(accountNumber);
-                    alert("Successfully funded!");
-                }
-
-                // let a = {
-                //     "cause": { "detailMessage": "length\u003d0; index\u003d0", "stackTrace": [], "suppressedExceptions": [] }, "detailMessage": "Invalid addressee public address format", "stackTrace": [], "suppressedExceptions": []
-                // }
-            });
+        let data = {
+            destination: this.publicAddress,
+            amount: this.amount
         }
+        await axios.post(`${config.env.prod.url}/kin/send`, data).then((response) => {
+            if (response.data) {
+                this.setState({ isProcessing: false });
+                this.getKinAccountBalance({
+                    address: this.props.credentials.publicAddress
+                });
+                alert("Successfully funded!");
+            }
+        }).catch((err) => {
+            if (err) {
+                this.setState({ isProcessing: false });
+                alert("network error!")
+            }
+        })
     }
 
-    getKinAccountBalance = accountNumber => {
-        if (accountNumber) {
-            KinNative.getUserBalance(JSON.stringify(kinConfig), parseInt(accountNumber), (error, balance) => {
-                console.log(error);
-                console.log(balance);
-                this.setState({ balance });
-            });
-        }
+    async getKinAccountBalance(credentials) {
+        await axios.get(`${config.env.prod.url}/kin/balance/${credentials.address}`).then((response) => {
+            if (response.data && response.data.payload) {
+                console.log(response.data.payload);
+                this.setState({ balance: response.data.payload });
+            }
+        }).catch((err) => {
+            if (err) {
+                console.log(err)
+            }
+        })
     }
 
     render() {
@@ -104,9 +106,9 @@ class KinMarketPlace extends Component {
                             <View style={{ alignItems: "center" }}>
                                 <Thumbnail source={require('../imgs/5c9b2dd5cce07f21b5f08089_KIN.png')} />
                             </View>
-                            <View style={{ alignItems: "center" }}>
+                            <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
                                 <View>
-                                    <Text style={{ color: "#bbb", fontSize: 20 }}>Public Address</Text>
+                                    <Text style={{ color: "#ccc", fontSize: 20 }}>Public Address</Text>
                                 </View>
                                 <View style={{ alignItems: "center" }}>
                                     <Text style={{ textAlign: "center", fontSize: 15, color: "white" }}>{this.props.credentials.publicAddress}</Text>
@@ -116,14 +118,14 @@ class KinMarketPlace extends Component {
                                 </View>
                                 <View style={{ marginTop: 20 }}>
                                     <View>
-                                        <Text style={{ color: "#bbb", fontSize: 20 }}>Balance</Text>
+                                        <Text style={{ color: "#ccc", fontSize: 20 }}>Balance</Text>
                                     </View>
                                     <View>
                                         <Text style={{ textAlign: "center", fontSize: 15, color: "white" }}>{this.state.balance} KIN</Text>
                                     </View>
                                 </View>
                             </View>
-                            <Card style={{ padding: 10, marginTop: 100, borderRadius: 10 }}>
+                            {/* <Card style={{ padding: 10, marginTop: 100, borderRadius: 10 }}>
                                 <View style={{ alignItems: "center" }}>
                                     <Text style={{ color: "#bbb", fontSize: 17 }}>Transfer KIN</Text>
                                 </View>
@@ -167,7 +169,7 @@ class KinMarketPlace extends Component {
                                         </LinearGradient>
                                     </TouchableOpacity>
                                 </View>
-                            </Card>
+                            </Card> */}
                         </View>}
                     >
                         <Line width="70%" />
@@ -186,6 +188,23 @@ class KinMarketPlace extends Component {
                         <Line width="30%" />
                         {/* {loading && <Loader loading={loading} text={loadingText} />} */}
                     </Placeholder>
+                    <TouchableOpacity
+                        onPress={() => goHome()}
+                    >
+                        <LinearGradient
+                            start={{ x: 0.0, y: 0.25 }} end={{ x: 0.5, y: 1.0 }}
+                            locations={[0, 0.5, 0.6]}
+                            colors={['#7049E4', '#7049E4', '#7049E4']}
+                            style={[{
+                                height: 50,
+                                width: "100%",
+                                alignItems: "center",
+                                borderRadius: 50,
+                                justifyContent: "center"
+                            }]}>
+                            <Text style={{ color: "white" }}>Go Home</Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
                 </LinearGradient >
             </ScrollView >
         );

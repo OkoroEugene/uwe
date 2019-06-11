@@ -16,7 +16,7 @@ const kinConfig = {
     // environment: "DEVELOPMENT"
     appId: "vNiX",
     environment: "PRODUCTION"
-  };
+};
 class Register extends Component {
 
     state = {
@@ -27,44 +27,58 @@ class Register extends Component {
     };
 
     onRegister = () => {
-        if (this.password != this.confirmPassword) {
-            return Toast.show({
-                text: "password and confirm password does not match",
-                type: "danger",
-                textStyle: {
-                    fontFamily: "Sofia Pro Regular"
-                }
-            })
+        if (this.email == null || this.username == null) {
+            alert("enter valid credentials");
+            return;
         }
+
+        if (this.password != this.confirmPassword) {
+            alert("password and confirm password does not match");
+            return;
+        }
+        
         this.startKin();
         // MainTabs();
     };
 
     async startKin() {
         this.showLoader('Please wait...')
-        KinNative.createUserAccount(JSON.stringify(kinConfig), (error, publicAddress, accountNumber, response) => {
-            console.log(error);
-            console.log(publicAddress);
-            console.log(accountNumber);
-            console.log(response);
-            this.doRegister({
-                username: this.username,
-                password: this.password,
-                email: this.email,
-                publicAddress: publicAddress,
-                accountNumber: accountNumber
-            });
+        await KinNative.createUserAccount(JSON.stringify(kinConfig), (error, publicAddress, accountNumber, response) => {
+            // console.log(error);
+            // console.log(publicAddress);
+            // console.log(accountNumber);
+            // console.log(response);
+            if (publicAddress) {
+                this.registerKIN({
+                    address: publicAddress
+                });
+            }
         });
     }
 
+    async registerKIN(credentials) {
+        await axios.post(`${config.env.prod.url}/kin/create`, credentials).then((response) => {
+            if (response.data && response.data.payload) {
+                this.doRegister({
+                    username: this.username,
+                    password: this.password,
+                    email: this.email,
+                    publicAddress: credentials.address,
+                    transactionId: response.data.payload
+                });
+            }
+        }).catch((err) => {
+            if (err) {
+                console.log(err)
+                this.hideLoader();
+            }
+        })
+    }
+
     async doRegister(credentials) {
-        await axios.post(`${config.env.prod.url}/register`, credentials).then(function (response) {
+        await axios.post(`${config.env.prod.url}/register`, credentials).then((response) => {
             AsyncStorage.setItem("TOKEN", response.data.token);
             console.log(response)
-            // this.props.navigator.push({
-            //     screen: "uwe.Home",
-            //     title: "Home"
-            // })
             goHome();
         }).catch((err) => {
             if (err) {

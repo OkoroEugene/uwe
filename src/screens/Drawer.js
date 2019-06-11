@@ -55,24 +55,6 @@ export default class Drawer extends Component {
         // this.defaultPubAddress();
     }
 
-    transferKin = (accountNumber, publicAddress) => {
-        // buildTransaction(String config, int accountNumber, String recipientAddress, BigDecimal amount, int fee, final Callback cb) {
-        if (accountNumber && publicAddress) {
-            KinNative.buildTransaction(JSON.stringify(kinConfig), parseInt(0), publicAddress, parseFloat(30), (error, result) => {
-                console.log(error);
-                console.log(result);
-            });
-        }
-    }
-
-    defaultPubAddress() {
-        KinNative.getPublicAddress(JSON.stringify(kinConfig), 0, (error, result) => {
-            console.log(error)
-            console.log(result)
-            console.log("-----pub address---")
-        })
-    }
-
     fetchUserData() {
         AsyncStorage.getItem("TOKEN")
             .then(token => {
@@ -81,10 +63,13 @@ export default class Drawer extends Component {
                     headers: { Authorization: `Bearer ${token}` || undefined }
                 }).then((response) => {
                     console.log(response.data)
-                    this.getKinAccountBalance(response.data.accountNumber);
+                    // this.getKinAccountBalance(response.data.accountNumber);
                     // this.transferKin(response.data.accountNumber, response.data.publicAddress);
                     this.setState({ userCredentials: response.data });
                 })
+                    .catch(err => {
+                        alert(err)
+                    })
             });
     }
 
