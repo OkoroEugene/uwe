@@ -36,7 +36,7 @@ class Register extends Component {
             alert("password and confirm password does not match");
             return;
         }
-        
+
         this.startKin();
         // MainTabs();
     };
@@ -45,18 +45,18 @@ class Register extends Component {
         this.showLoader('Please wait...')
         await KinNative.createUserAccount(JSON.stringify(kinConfig), (error, publicAddress, accountNumber, response) => {
             // console.log(error);
-            // console.log(publicAddress);
-            // console.log(accountNumber);
+            console.log(publicAddress);
+            console.log(accountNumber);
             // console.log(response);
             if (publicAddress) {
-                this.registerKIN({
+                this.registerKIN(accountNumber, {
                     address: publicAddress
                 });
             }
         });
     }
 
-    async registerKIN(credentials) {
+    async registerKIN(accountNumber, credentials) {
         await axios.post(`${config.env.prod.url}/kin/create`, credentials).then((response) => {
             if (response.data && response.data.payload) {
                 this.doRegister({
@@ -64,7 +64,8 @@ class Register extends Component {
                     password: this.password,
                     email: this.email,
                     publicAddress: credentials.address,
-                    transactionId: response.data.payload
+                    transactionId: response.data.payload,
+                    accountNumber: accountNumber
                 });
             }
         }).catch((err) => {

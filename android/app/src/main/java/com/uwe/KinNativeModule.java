@@ -9,6 +9,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.google.gson.Gson;
 
+import org.json.JSONException;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +21,7 @@ import kin.sdk.KinAccount;
 import kin.sdk.KinClient;
 import kin.sdk.Transaction;
 import kin.sdk.TransactionId;
+import kin.sdk.WhitelistableTransaction;
 import kin.sdk.exception.CreateAccountException;
 import kin.sdk.exception.DeleteAccountException;
 import kin.utils.Request;
@@ -28,12 +31,15 @@ import okhttp3.Response;
 
 public class KinNativeModule extends ReactContextBaseJavaModule {
 
+    private final ReactApplicationContext reactContext;
+
     private KinClient kinClient;
     private Gson gson = new Gson();
-    private static final String URL_CREATE_ACCOUNT = "https://friendbot-testnet.kininfrastructure.com?addr=%s&amount=" + String.valueOf(10);
+    private static final String URL_CREATE_ACCOUNT = "https://friendbot-testnet.kininfrastructure.com?addr=%s&amount=" + String.valueOf(5000);
 
     public KinNativeModule(ReactApplicationContext reactContext) {
         super(reactContext);
+        this.reactContext = reactContext;
     }
 
     @Override
@@ -66,7 +72,7 @@ public class KinNativeModule extends ReactContextBaseJavaModule {
         return kinClient;
     }
 
-     @ReactMethod
+    @ReactMethod
     public void showToast(String text) {
         Toast.makeText(getReactApplicationContext(), text, Toast.LENGTH_SHORT).show();
     }
@@ -142,6 +148,7 @@ public class KinNativeModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void buildTransaction(String config, int accountNumber, String recipientAddress, double amount, final Callback cb) {
+        init(config);
         try {
             buildTransaction(config, accountNumber, recipientAddress, amount, getCurrentMinimumFee(), cb);
         } catch (Exception e) {
@@ -161,7 +168,7 @@ public class KinNativeModule extends ReactContextBaseJavaModule {
     }
 
     private void buildTransaction(int accountNumber, String recipientAddress, double amount, int fee, String memo, final Callback cb) {
-        KinAccount kinAccount = getUserAccount(accountNumber);
+        final KinAccount kinAccount = getUserAccount(accountNumber);
         Request<Transaction> transactionRequest = kinAccount.buildTransaction(recipientAddress, new BigDecimal(amount), fee, memo);
         transactionRequest.run(new ResultCallback<Transaction>() {
             @Override
@@ -188,8 +195,70 @@ public class KinNativeModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void buildWhitelistedTransaction(String recipientAddress, float amount, int fee, final Callback cb) {
+    public void buildWhitelistedTransaction(String config, int accountNumber, String recipientAddress, double amount, final Callback cb) {
+        init(config);
+        try {
+            buildWhitelistedTransaction(config, accountNumber, recipientAddress, amount, getCurrentMinimumFee(), cb);
+        } catch (Exception e) {
+            cb.invoke(gson.toJson(new Error(e.getMessage(), e.getCause())));
+        }
+    }
 
+    @ReactMethod
+    public void buildWhitelistedTransaction(String config, int accountNumber, String recipientAddress, double amount, int fee, final Callback cb) {
+        buildWhitelistedTransaction(config, accountNumber, recipientAddress, amount, fee, null, cb);
+    }
+
+    @ReactMethod
+    public void buildWhitelistedTransaction(String config, int accountNumber, String recipientAddress, double amount, int fee, String memo, final Callback cb) {
+        init(config);
+        buildWhitelistedTransaction(accountNumber, recipientAddress, amount, fee, memo, cb);
+    }
+
+    private void buildWhitelistedTransaction(int accountNumber, String recipientAddress, double amount, int fee, String memo, final Callback cb) {
+        final KinAccount kinAccount = getUserAccount(accountNumber);
+        Request<Transaction> transactionRequest = kinAccount.buildTransaction(recipientAddress, new BigDecimal(amount), fee, memo);
+        transactionRequest.run(new ResultCallback<Transaction>() {
+            @Override
+            public void onResult(Transaction transaction) {
+                try {
+                    whitelistTransaction(transaction.getWhitelistableTransaction(), kinAccount, cb);
+                } catch (JSONException e) {
+                    cb.invoke(gson.toJson(new Error(e.getMessage(), e.getCause())));
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                cb.invoke(gson.toJson(new Error(e.getMessage(), e.getCause())));
+            }
+        });
+    }
+
+    private void whitelistTransaction(WhitelistableTransaction transaction, KinAccount kinAccount, Callback cb) throws JSONException {
+        new WhitelistService().whitelistTransaction(transaction, new okhttp3.Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                cb.invoke(gson.toJson(new Error(e.getMessage(), e.getCause())));
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                String whitelist = response.body().string();
+                Request<TransactionId> transactionIdRequest = kinAccount.sendWhitelistTransaction(whitelist);
+                transactionIdRequest.run(new ResultCallback<TransactionId>() {
+                    @Override
+                    public void onResult(TransactionId transactionId) {
+                        cb.invoke(null, gson.toJson(transactionId), whitelist);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        cb.invoke(gson.toJson(new Error(e.getMessage(), e.getCause())));
+                    }
+                });
+            }
+        });
     }
 
     @ReactMethod

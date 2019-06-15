@@ -32,14 +32,16 @@ import LinearGradient from 'react-native-linear-gradient';
 const KinNative = NativeModules.KinNativeModule;
 
 const kinConfig = {
-    appId: "test",
-    environment: "DEVELOPMENT"
-    // appId: "vNiX",
-    // environment: "PRODUCTION"
+    // appId: "test",
+    // environment: "DEVELOPMENT"
+    appId: "vNiX",
+    environment: "PRODUCTION"
 };
+// vNiX
 class Home extends React.Component {
     constructor(props) {
         super(props);
+        this.publicAddress = "GBABQVBNGKL37YWBBGYLTY2AIYTJJ2PWTVYFDFPQIYIR4RYBJDB5PIZY";
         const shareLinkContent = {
             contentType: 'photo',
             photos: [
@@ -64,7 +66,8 @@ class Home extends React.Component {
             loadingText: undefined,
             isDrawerVisible: false,
             userCredentials: {},
-            changeCount: 0
+            changeCount: 0,
+            balance: 0
         }
     }
     componentDidMount() {
@@ -94,6 +97,20 @@ class Home extends React.Component {
             alert("logout")
         }
     }
+
+    async getKinAccountBalance(credentials) {
+        await Axios.get(`${config.env.prod.url}/kin/balance/${credentials.address}`).then((response) => {
+            if (response.data && response.data.payload) {
+                console.log(response.data.payload);
+                this.setState({ balance: response.data.payload });
+            }
+        }).catch((err) => {
+            if (err) {
+                console.log(err)
+            }
+        })
+    }
+
     handleSort(value) {
         this.setState({ fabrics: faker[value], meta: value })
     }
@@ -167,8 +184,14 @@ class Home extends React.Component {
             </View>
         );
     }
-    updateData(data, i) {
-        this.transferKin(2);
+    async updateData(data, i) {
+        await setTimeout(async () => {
+            await this.transferKin(2);
+        }, 0);
+        // if (this.state.balance && (this.state.changeCount * 2) >= this.state.balance) {
+        //     alert("You have insufficient KIN to continue!");
+        //     return;
+        // }
         this.setState({ [this.state.meta]: data, selected: i, changeCount: this.state.changeCount + 1 })
     }
     fabrics(data) {
@@ -201,7 +224,7 @@ class Home extends React.Component {
                             </TouchableOpacity>)
                     }
                 </ScrollView>
-                <View style={{ justifyContent: "center", position: "relative", bottom: "10%", paddingHorizontal: 58, marginTop: 30 }}>
+                <View style={{ justifyContent: "center", paddingHorizontal: 58 }}>
                     <TouchableOpacity
                         onPress={() => this.goBack()}
                     >
@@ -235,8 +258,30 @@ class Home extends React.Component {
         this.setState({ loading: false, loadingText: null })
     }
 
+    async whiteListTx(tx) {
+        await Axios.post(`${config.env.prod.url}/kin/whitelist`, tx).then((response) => {
+            if (response.data && response.data.payload) {
+                console.log(response.data)
+            }
+        }).catch((err) => {
+            if (err) {
+                console.log(err)
+            }
+        })
+    }
+
     transferKin = async (amt = 0) => {
         this.setState({ isProcessing: true });
+        await KinNative.buildTransaction(JSON.stringify(kinConfig), parseInt(this.state.userCredentials.accountNumber), this.publicAddress, amt, (err, response) => {
+            console.log(err);
+            console.log(response);
+            // let data = JSON.parse(response);
+            // console.log(data.id)
+            // this.whiteListTx({ tx: data.id });
+        })
+    }
+
+    fundWallet = async (amt = 0) => {
         let data = {
             destination: this.state.userCredentials.publicAddress,
             amount: amt == 0 ? 50 : amt
@@ -267,6 +312,7 @@ class Home extends React.Component {
             }
         })
     }
+
     screenShot() {
         this.showLoader("Please wait...");
         this.refs.viewShot.capture().then(uri => {
@@ -298,7 +344,8 @@ class Home extends React.Component {
                     alert('Share cancelled');
                 } else {
                     alert('Congratulations!! You have earned 50KIN coin.');
-                    this.transferKin();
+                    this.fundWallet();
+                    this.setState({ changeCount: 0 });
                     this.showLoader("Initializing transaction...")
                 }
             } catch (error) {
@@ -316,6 +363,9 @@ class Home extends React.Component {
                     headers: { Authorization: `Bearer ${token}` || undefined }
                 }).then((response) => {
                     console.log(response.data)
+                    this.getKinAccountBalance({
+                        address: response.data.publicAddress
+                    });
                     this.setState({ userCredentials: response.data });
                 })
                     .catch(err => {
@@ -343,41 +393,42 @@ class Home extends React.Component {
     render() {
         const { loading, loadingText } = this.state;
         return (
-            <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}>
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
                 {/* <Image style={{ width: "50%", height: "50%", marginTop: 1000 }} source={{ uri: this.state.screenShot }} /> */}
                 <View style={{ alignItems: "center", marginTop: 10 }}>
-                    <View style={{ width: 100, height: 24, borderRadius: 30, backgroundColor: "#ccc", justifyContent: "center" }}>
-                        <Text style={{ fontSize: 14, color: "black", textAlign: "center" }}>Counter: {this.state.changeCount}</Text>
+                    <View style={{ width: 150, height: 25, borderRadius: 30, backgroundColor: "#ccc", justifyContent: "center" }}>
+                        <Text style={{ fontSize: 12, color: "black", textAlign: "center" }}>Counter: {`${this.state.changeCount} = ${this.state.changeCount * 2} KIN`}</Text>
                     </View>
                 </View>
                 <ViewShot
                     style={{
-                        flexGrow: 1,
                         justifyContent: "center",
                         alignItems: "center",
-                        position: "relative",
+                        marginTop: 30
+                        // position: "relative",
                         // backgroundColor: "red",
-                        height: Dimensions.get('window').height - 450,
-                        paddingTop: "80%",
+                        // height: "150%",
+                        // paddingTop: "80%",
                         // bottom: 80,
                         // borderWidth: 2,
                         // borderColor: "#bbb",
-                        paddingHorizontal: 60
+                        // paddingHorizontal: 60
                     }} ref="viewShot" options={{ format: "jpg", quality: 0.9 }}>
 
                     {/* <ViewShot style={{ flexGrow: 1, justifyContent: "center", alignItems: "center" }} onCapture={this.onCapture} captureMode="mount"> */}
-                    <View style={{ marginTop: -100 }}>
+                    <View style={{ marginTop: 0, height: 400 }}>
                         <Collar collar={this.state.collar} />
                         <Sleeves sleeves={this.state.sleeves} />
                         <Body body={this.state.body} />
                     </View>
                     {/* <Cuffs cuffs={this.state.cuffs} /> */}
                 </ViewShot>
-                <View style={{ flex: 1 }}>
-                    {
-                        this.state.fabrics.length > 0 ? this.fabrics(this.state.fabrics) : this.options()
-                    }
-                    {/* {
+                <View style={{ height: 200 }}>
+                    <View>
+                        {
+                            this.state.fabrics.length > 0 ? this.fabrics(this.state.fabrics) : this.options()
+                        }
+                        {/* {
                         this.state.fabrics.length > 0 ? <View style={{ justifyContent: "center", alignItems: "center" }}>
                             <TouchableOpacity
                                 onPress={() => this.goBack()}
@@ -386,12 +437,15 @@ class Home extends React.Component {
                             </TouchableOpacity>
                         </View> : null
                     } */}
-                </View>
-                <View style={{ position: "absolute", bottom: 50, alignSelf: "center" }}>
-                    <Button style={{ width: "100%", height: 50, justifyContent: "center", borderRadius: 50 }} large icon onPress={this.screenShot.bind(this)}>
-                        <Icon name='logo-facebook' />
-                        <Text style={{ color: "white" }}>Share to earn Kin coins</Text>
-                    </Button>
+                    </View>
+                    {
+                        !this.state.fabrics.length > 0 ? <View style={{ position: "absolute", bottom: 50, alignSelf: "center" }}>
+                            <Button style={{ width: "100%", height: 50, justifyContent: "center", borderRadius: 50 }} large icon onPress={this.screenShot.bind(this)}>
+                                <Icon name='logo-facebook' />
+                                <Text style={{ color: "white" }}>Share to earn Kin coins</Text>
+                            </Button>
+                        </View> : null
+                    }
                 </View>
                 {loading && <Loader loading={loading} text={loadingText} />}
             </ScrollView>
