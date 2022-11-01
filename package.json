@@ -13,7 +13,7 @@
     "native-base": "^2.12.1",
     "react": "16.8.3",
     "react-native": "0.59.8",
-    "react-native-fbsdk": "^0.8.0",
+    "react-native-fbsdk": "^3.0.0",
     "react-native-kin-sdk": "github:grantfayvor/react-native-kin-sdk",
     "react-native-linear-gradient": "^2.5.4",
     "react-native-navigation": "^2.18.5",
